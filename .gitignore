@@ -1,9 +1,10 @@
 
 Direct3D-study/.vs/Direct3D-study/v15/.suo
+Direct3D-study/Debug
+Direct3D-study/Direct3D-study/Debug
 *.opendb
 *.ipch
 *.db
 *.log
-*.inl
 *.user
 *.filters
