@@ -27,10 +27,10 @@ struct CUSTOMVERTEX
 CUSTOMVERTEX g_vertices[] =
 {
 	{ -1.0f, -1.0f, 0.0f, 0xffff0000, },
-	{  1.0f, -1.0f, 0.0f, 0xff0000ff, },
-	{  0.0f,  1.0f, 0.0f, 0xffffffff, },
+	{  1.0f, -1.0f, 0.0f, 0xff00ff00, },
+	{  0.0f,  1.0f, 0.0f, 0xff0000ff, },
 };
-#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_DIFFUSE)
+#define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_DIFFUSE/*扩散*/)
 
 #elif defined LIGHTS_TEST
 
@@ -96,6 +96,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	d3dpp.EnableAutoDepthStencil = TRUE;//开启深度缓存和模板缓存
 	d3dpp.AutoDepthStencilFormat = D3DFMT_D16;//指定深度缓冲及模板缓冲区的格式
 
+	//全屏
+	//D3DDISPLAYMODE d3ddm;
+	//g_d3d->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &d3ddm);
+	//d3dpp.BackBufferWidth = d3ddm.Width;
+	//d3dpp.BackBufferHeight = d3ddm.Height;
+	//d3dpp.BackBufferFormat = d3ddm.Format;
+
 	//创建D3D设备对象
 	HRESULT res = g_d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, g_hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dpp, &g_device);
 
@@ -133,7 +140,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		g_vertices[2 * i + 0].tv = 1.0f;
 
 		g_vertices[2 * i + 1].position = D3DXVECTOR3(sinf(theta), 1.0f, -cosf(theta));
-		g_vertices[2 * i + 1].color = 0xff808080;
+		g_vertices[2 * i + 1].color = 0xffffffff;
 		g_vertices[2 * i + 1].tu = ((FLOAT)i) / 49;
 		g_vertices[2 * i + 1].tv = 0.0f;
 	}
@@ -236,9 +243,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 			//投影坐标系
 			D3DXMATRIX matProj, *pmatProj = nullptr;
-			pmatProj = D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 2/*在y方向上的视野，用弧度表示*/,
-				1/*宽高比*/, 1/*近视图平面的Z值*/, 100/*远视图平面的Z值*/);//创建投影矩阵
+			pmatProj = D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 2/*在y方向上的视野，用弧度表示*/, 1/*宽高比*/, 1/*近视图平面的Z值*/, 100/*远视图平面的Z值*/);//创建投影矩阵
 			res = g_device->SetTransform(D3DTS_PROJECTION, &matProj);
+
+			//设置视区
+			RECT rect;
+			GetClientRect(g_hwnd, &rect);
+			D3DVIEWPORT9 vp;
+			vp.X = rect.right/2;
+			vp.Y = rect.bottom/2;
+			vp.Width = rect.right/2;
+			vp.Height = rect.bottom/2;
+			vp.MinZ = 0.0f;
+			vp.MaxZ = 1.0f;
+			g_device->SetViewport(&vp);
 
 #ifndef MESHES_TEST
 			//设置渲染源数据
