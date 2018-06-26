@@ -87,6 +87,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		return FALSE;
 	}
 
+BEGIN:
 	//创建D3D对象
 	g_d3d = Direct3DCreate9(D3D_SDK_VERSION);
 
@@ -283,6 +284,70 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 			//渲染
 			res = g_device->Present(nullptr, nullptr, nullptr, nullptr);
+
+			//处理设备丢失
+			if (FAILED(res))
+			{
+				HRESULT hr = g_device->TestCooperativeLevel();
+				if (SUCCEEDED(hr) || hr == D3DERR_DEVICENOTRESET)
+				{
+					HRESULT hr = g_device->Reset(&d3dpp);
+					//清理
+					if (g_meshmaterial != nullptr)
+					{
+						delete[] g_meshmaterial;
+						g_meshmaterial = nullptr;
+					}
+					if (g_txs != nullptr)
+					{
+						for (int i = 0; i < materials; ++i)
+						{
+							if (g_txs[i] != nullptr)
+							{
+								g_txs[i]->Release();
+								g_txs[i] = nullptr;
+							}
+						}
+						delete[] g_txs;
+						g_txs = nullptr;
+					}
+					if (g_mesh != nullptr)
+					{
+						g_mesh->Release();
+						g_mesh = nullptr;
+					}
+
+
+					if (g_tx != nullptr)
+					{
+						g_tx->Release();
+						g_tx = nullptr;
+					}
+					if (g_vb != nullptr)
+					{
+						g_vb->Release();
+						g_vb = nullptr;
+					}
+					if (g_device != nullptr)
+					{
+						g_device->Release();
+						g_device = nullptr;
+					}
+					if (g_d3d != nullptr)
+					{
+						g_d3d->Release();
+						g_d3d = nullptr;
+					}
+					goto BEGIN;
+				}
+				else if(hr == D3DERR_DEVICELOST)
+				{
+					Sleep(25);
+				}
+				else
+				{
+				}
+			}
 		}
 	}
 
